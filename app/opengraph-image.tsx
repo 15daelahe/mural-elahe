@@ -128,7 +128,7 @@ export default async function OpengraphImage() {
             color: "#9b8a93",
           }}
         >
-          {partyConfig.hashtag} · mural compartilhado
+          {`${partyConfig.hashtag} · mural compartilhado`}
         </div>
       </div>
     ),
