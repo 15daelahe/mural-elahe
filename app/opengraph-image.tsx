@@ -98,7 +98,7 @@ export default async function OpengraphImage() {
           >
             15 anos
           </div>
-          <OrnamentLine flip />
+          <OrnamentLine />
         </div>
 
         {/* Tagline */}
@@ -175,17 +175,11 @@ function Star({
   );
 }
 
-function OrnamentLine({ flip = false }: { flip?: boolean }) {
+function OrnamentLine() {
   return (
-    <svg
-      width="120"
-      height="14"
-      viewBox="0 0 120 14"
-      style={{ transform: flip ? "scaleX(-1)" : undefined }}
-      fill="none"
-    >
+    <svg width="120" height="14" viewBox="0 0 120 14" fill="none">
       <path
-        d="M2 7 Q30 7 58 7 M64 7 L74 2 L84 7 L94 2 L104 7 L114 7"
+        d="M2 7 L18 7 L26 2 L34 7 L42 2 L50 7 L58 7 M64 7 L74 2 L84 7 L94 2 L104 7 L118 7"
         stroke="#c79762"
         strokeWidth="1.2"
         strokeLinecap="round"
