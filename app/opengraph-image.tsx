@@ -14,10 +14,10 @@ async function loadFont(url: string) {
 export default async function OpengraphImage() {
   const [cormorantItalic, italianno] = await Promise.all([
     loadFont(
-      "https://github.com/google/fonts/raw/main/ofl/cormorantgaramond/CormorantGaramond-MediumItalic.ttf",
+      "https://raw.githubusercontent.com/google/fonts/main/ofl/cormorantgaramond/CormorantGaramond-Italic%5Bwght%5D.ttf",
     ),
     loadFont(
-      "https://github.com/google/fonts/raw/main/ofl/italianno/Italianno-Regular.ttf",
+      "https://raw.githubusercontent.com/google/fonts/main/ofl/italianno/Italianno-Regular.ttf",
     ),
   ]);
 
