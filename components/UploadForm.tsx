@@ -177,7 +177,7 @@ export function UploadForm() {
           no mural
         </h1>
         <p className="text-ink-soft mt-1 text-sm">
-          Em menos de 10 segundos ✨
+          Suas memórias da noite ✨
         </p>
       </header>
 
@@ -202,6 +202,9 @@ export function UploadForm() {
         </p>
         <p className="text-xs text-ink-soft">
           ou arraste aqui · JPG · PNG · MP4
+        </p>
+        <p className="display italic text-[13px] text-[var(--blush-deep)] mt-3">
+          ✿  vídeos curtinhos, até 10 segundos
         </p>
         <input
           id="file-input"
