@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -18,8 +18,31 @@ type Props = {
   onIndexChange: (i: number) => void;
 };
 
+async function downloadAsset(slide: Slide) {
+  try {
+    const res = await fetch(slide.src);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const ext = slide.isVideo ? "mp4" : (slide.src.split(".").pop() ?? "jpg").split("?")[0];
+    const safe = (slide.uploader ?? "elahe-mural").replace(/[^\w\-]+/g, "-");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${safe}-${Date.now()}.${ext}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return true;
+  } catch (e) {
+    console.error("download failed", e);
+    return false;
+  }
+}
+
 export function Lightbox({ slides, index, onClose, onIndexChange }: Props) {
   const startX = useRef<number | null>(null);
+  const [downloading, setDownloading] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
 
   const go = (delta: number) => {
     const next = (index + delta + slides.length) % slides.length;
@@ -66,15 +89,47 @@ export function Lightbox({ slides, index, onClose, onIndexChange }: Props) {
           startX.current = null;
         }}
       >
-        {/* Fechar */}
-        <button
-          type="button"
-          aria-label="Fechar"
-          onClick={onClose}
-          className="absolute top-5 right-5 z-10 w-10 h-10 rounded-full bg-paper/15 text-paper text-xl flex items-center justify-center hover:bg-paper/25 transition"
-        >
-          ✕
-        </button>
+        {/* Top bar com download + fechar */}
+        <div className="absolute top-5 right-5 z-10 flex items-center gap-2">
+          <button
+            type="button"
+            aria-label="Baixar"
+            disabled={downloading}
+            onClick={async (e) => {
+              e.stopPropagation();
+              setDownloading(true);
+              const ok = await downloadAsset(slides[index]);
+              setDownloading(false);
+              if (ok) {
+                setDownloaded(true);
+                setTimeout(() => setDownloaded(false), 1800);
+              }
+            }}
+            title="Baixar"
+            className="h-10 px-4 rounded-full bg-paper/15 text-paper text-[12px] flex items-center gap-1.5 hover:bg-paper/25 transition disabled:opacity-60"
+          >
+            {downloaded ? (
+              <>✓ <span className="hidden sm:inline">salvo</span></>
+            ) : downloading ? (
+              <>… <span className="hidden sm:inline">baixando</span></>
+            ) : (
+              <>
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 3v12m0 0l-5-5m5 5l5-5M5 21h14" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="hidden sm:inline">baixar</span>
+              </>
+            )}
+          </button>
+          <button
+            type="button"
+            aria-label="Fechar"
+            onClick={onClose}
+            className="w-10 h-10 rounded-full bg-paper/15 text-paper text-xl flex items-center justify-center hover:bg-paper/25 transition"
+          >
+            ✕
+          </button>
+        </div>
 
         {/* Setas (desktop) */}
         {slides.length > 1 && (
