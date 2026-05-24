@@ -12,12 +12,13 @@ async function loadFont(url: string) {
 }
 
 export default async function OpengraphImage() {
+  // Fontsource via jsDelivr — fontes ESTÁTICAS (satori não suporta variable fonts)
   const [cormorantItalic, italianno] = await Promise.all([
     loadFont(
-      "https://raw.githubusercontent.com/google/fonts/main/ofl/cormorantgaramond/CormorantGaramond-Italic%5Bwght%5D.ttf",
+      "https://cdn.jsdelivr.net/fontsource/fonts/cormorant-garamond@latest/latin-500-italic.ttf",
     ),
     loadFont(
-      "https://raw.githubusercontent.com/google/fonts/main/ofl/italianno/Italianno-Regular.ttf",
+      "https://cdn.jsdelivr.net/fontsource/fonts/italianno@latest/latin-400-normal.ttf",
     ),
   ]);
 
