@@ -103,12 +103,21 @@ export function AdminDashboard({
             >
               <div className="relative aspect-square bg-paper-deep">
                 {p.is_video ? (
-                  <video
-                    src={p.image_url}
-                    muted
-                    playsInline
-                    className="w-full h-full object-cover"
-                  />
+                  p.thumbnail_url && p.thumbnail_url !== p.image_url ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={p.thumbnail_url}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <video
+                      src={p.image_url}
+                      muted
+                      playsInline
+                      className="w-full h-full object-cover"
+                    />
+                  )
                 ) : (
                   <Image
                     src={p.image_url}

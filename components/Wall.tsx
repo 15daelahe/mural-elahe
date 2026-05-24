@@ -60,6 +60,10 @@ export function Wall({ initial }: { initial: Photo[] }) {
     () =>
       photos.map((p) => ({
         src: p.image_url,
+        poster:
+          p.thumbnail_url && p.thumbnail_url !== p.image_url
+            ? p.thumbnail_url
+            : undefined,
         isVideo: p.is_video,
         caption: p.caption ?? undefined,
         uploader: p.uploader_name ?? undefined,
@@ -123,13 +127,22 @@ export function Wall({ initial }: { initial: Photo[] }) {
                   <div className="relative overflow-hidden">
                     {p.is_video ? (
                       <div className="relative w-full" style={{ paddingBottom: "120%" }}>
-                        <video
-                          src={p.image_url}
-                          muted
-                          playsInline
-                          preload="metadata"
-                          className="absolute inset-0 w-full h-full object-cover"
-                        />
+                        {p.thumbnail_url && p.thumbnail_url !== p.image_url ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img
+                            src={p.thumbnail_url}
+                            alt={p.caption ?? "Pré-visualização de vídeo"}
+                            className="absolute inset-0 w-full h-full object-cover"
+                          />
+                        ) : (
+                          <video
+                            src={p.image_url}
+                            muted
+                            playsInline
+                            preload="metadata"
+                            className="absolute inset-0 w-full h-full object-cover"
+                          />
+                        )}
                         <span className="absolute top-2 right-2 text-[10px] tracking-wider uppercase text-paper bg-ink/70 px-2 py-1 rounded-full">
                           ▷ vídeo
                         </span>

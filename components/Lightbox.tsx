@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 type Slide = {
   src: string;
+  poster?: string;
   isVideo: boolean;
   caption?: string;
   uploader?: string;
@@ -175,6 +176,7 @@ export function Lightbox({ slides, index, onClose, onIndexChange }: Props) {
             {slide.isVideo ? (
               <video
                 src={slide.src}
+                poster={slide.poster}
                 controls
                 autoPlay
                 playsInline

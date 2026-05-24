@@ -118,7 +118,8 @@ export function UploadForm() {
         const now = new Date();
         const folder = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, "0")}`;
         const ext = guessExt(mime, p.file.name);
-        const path = `${folder}/${crypto.randomUUID()}.${ext}`;
+        const baseId = crypto.randomUUID();
+        const path = `${folder}/${baseId}.${ext}`;
 
         const { error: upErr } = await sb.storage.from("photos").upload(path, toUpload, {
           contentType: mime,
@@ -128,12 +129,37 @@ export function UploadForm() {
         if (upErr) throw upErr;
 
         const { data: pub } = sb.storage.from("photos").getPublicUrl(path);
+        let thumbUrl = pub.publicUrl;
+
+        // Para vídeos: capturar frame e fazer upload do thumbnail separadamente
+        if (p.isVideo) {
+          setStatus("preparing");
+          const thumb = await generateVideoThumbnail(p.file);
+          if (thumb) {
+            const thumbPath = `${folder}/${baseId}-poster.jpg`;
+            const { error: thumbErr } = await sb.storage
+              .from("photos")
+              .upload(thumbPath, thumb.blob, {
+                contentType: "image/jpeg",
+                cacheControl: "31536000",
+                upsert: false,
+              });
+            if (!thumbErr) {
+              const { data: thumbPub } = sb.storage
+                .from("photos")
+                .getPublicUrl(thumbPath);
+              thumbUrl = thumbPub.publicUrl;
+              width = thumb.width;
+              height = thumb.height;
+            }
+          }
+        }
 
         setStatus("saving");
         const { error: insErr } = await sb.from("photos").insert({
           storage_path: path,
           image_url: pub.publicUrl,
-          thumbnail_url: pub.publicUrl,
+          thumbnail_url: thumbUrl,
           uploader_name: name.trim() || null,
           caption: caption.trim() || null,
           mime_type: mime,
@@ -342,6 +368,59 @@ export function UploadForm() {
       <Toast message={toast?.msg ?? ""} kind={toast?.kind} show={!!toast} />
     </section>
   );
+}
+
+async function generateVideoThumbnail(
+  file: File,
+): Promise<{ blob: Blob; width: number; height: number } | null> {
+  return new Promise((resolve) => {
+    const video = document.createElement("video");
+    video.preload = "metadata";
+    video.muted = true;
+    video.playsInline = true;
+    const url = URL.createObjectURL(file);
+    video.src = url;
+
+    const cleanup = () => URL.revokeObjectURL(url);
+    const fail = () => {
+      cleanup();
+      resolve(null);
+    };
+
+    video.onloadedmetadata = () => {
+      // captura um pouco depois do início pra evitar frame preto inicial
+      const seek = Math.min(0.8, Math.max(0.1, (video.duration || 1) * 0.15));
+      video.currentTime = seek;
+    };
+
+    video.onseeked = () => {
+      const targetW = Math.min(1280, video.videoWidth || 720);
+      const ratio = targetW / (video.videoWidth || targetW);
+      const targetH = Math.round((video.videoHeight || 720) * ratio);
+      const canvas = document.createElement("canvas");
+      canvas.width = targetW;
+      canvas.height = targetH;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return fail();
+      try {
+        ctx.drawImage(video, 0, 0, targetW, targetH);
+      } catch {
+        return fail();
+      }
+      canvas.toBlob(
+        (blob) => {
+          cleanup();
+          resolve(blob ? { blob, width: targetW, height: targetH } : null);
+        },
+        "image/jpeg",
+        0.85,
+      );
+    };
+
+    video.onerror = fail;
+    // Timeout de segurança (alguns formatos hangam)
+    setTimeout(fail, 8000);
+  });
 }
 
 function measureImage(url: string): Promise<{ w: number; h: number }> {
