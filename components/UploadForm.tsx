@@ -208,7 +208,6 @@ export function UploadForm() {
           type="file"
           accept="image/*,video/mp4,video/quicktime"
           multiple
-          capture="environment"
           className="hidden"
           onChange={(e) => e.target.files && addFiles(e.target.files)}
         />
