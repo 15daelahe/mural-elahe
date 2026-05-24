@@ -1,12 +1,10 @@
-import { cookies } from "next/headers";
 import { AdminLogin } from "@/components/AdminLogin";
 import { AdminDashboard } from "@/components/AdminDashboard";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
+import { isAdmin } from "@/lib/admin-auth";
 import type { Photo } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
-
-const COOKIE = "admin-token";
 
 export default async function AdminPage({
   searchParams,
@@ -14,8 +12,7 @@ export default async function AdminPage({
   searchParams: Promise<{ error?: string }>;
 }) {
   const { error } = await searchParams;
-  const expected = process.env.ADMIN_PASSWORD;
-  if (!expected) {
+  if (!process.env.ADMIN_PASSWORD) {
     return (
       <section className="p-10 max-w-xl mx-auto text-center">
         <div className="glass rounded-3xl p-8">
@@ -31,11 +28,7 @@ export default async function AdminPage({
     );
   }
 
-  const cookieStore = await cookies();
-  const token = cookieStore.get(COOKIE)?.value;
-  const authed = token === expected;
-
-  if (!authed) return <AdminLogin error={error === "1"} />;
+  if (!(await isAdmin())) return <AdminLogin error={error === "1"} />;
 
   let photos: Photo[] = [];
   let totalSize = 0;

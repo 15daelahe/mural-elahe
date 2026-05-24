@@ -4,17 +4,20 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
-
-const COOKIE = "admin-token";
+import {
+  ADMIN_COOKIE,
+  checkPassword,
+  requireAdmin,
+  sessionToken,
+} from "@/lib/admin-auth";
 
 export async function loginAction(formData: FormData) {
   const password = String(formData.get("password") ?? "");
-  const expected = process.env.ADMIN_PASSWORD;
-  if (!expected || password !== expected) {
+  if (!checkPassword(password)) {
     redirect("/admin?error=1");
   }
   const jar = await cookies();
-  jar.set(COOKIE, expected, {
+  jar.set(ADMIN_COOKIE, sessionToken(password), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -26,11 +29,12 @@ export async function loginAction(formData: FormData) {
 
 export async function logoutAction() {
   const jar = await cookies();
-  jar.delete(COOKIE);
+  jar.delete(ADMIN_COOKIE);
   redirect("/admin");
 }
 
 export async function deletePhoto(id: string, storagePath: string) {
+  await requireAdmin();
   const sb = createSupabaseAdmin();
   await sb.storage.from("photos").remove([storagePath]);
   await sb.from("photos").delete().eq("id", id);
@@ -40,6 +44,7 @@ export async function deletePhoto(id: string, storagePath: string) {
 }
 
 export async function toggleFeatured(id: string, featured: boolean) {
+  await requireAdmin();
   const sb = createSupabaseAdmin();
   await sb.from("photos").update({ featured: !featured }).eq("id", id);
   revalidatePath("/admin");
@@ -47,6 +52,7 @@ export async function toggleFeatured(id: string, featured: boolean) {
 }
 
 export async function toggleApproved(id: string, approved: boolean) {
+  await requireAdmin();
   const sb = createSupabaseAdmin();
   await sb.from("photos").update({ approved: !approved }).eq("id", id);
   revalidatePath("/admin");
